@@ -21,7 +21,29 @@ processFile(File, ".flac") ->
 processFile(_, _) ->
 	unknownFileType.
 
-parseContent(<<IsLastBlock, Rest/binary>>) when IsLastBlock =:= 0 ->
-	<<IsLastBlock, Rest/binary>>;
-parseContent(<<IsLastBlock, Rest/binary>>) when IsLastBlock =:= 1 ->
-	<<IsLastBlock, Rest/binary>>.
+% parse the content of the file. In this case, the next block is not the last
+% of the file
+parseContent(<<IsLastBlock:1, Rest/bitstring>>) when IsLastBlock =:= 0 ->
+	{<<Block/binary>>, <<NewRest/binary>>} = processMetaDataBlock(
+		<<IsLastBlock:1, Rest/bitstring>>
+	),
+	Content = parseContent(NewRest),
+	<<Block/binary, Content/binary>>;
+% In this case, this block is the last before the file content
+parseContent(<<IsLastBlock:1, Rest/bitstring>>) when IsLastBlock =:= 1 ->
+	{<<Block/binary>>, <<RestNew/binary>>} = processMetaDataBlock(
+		<<IsLastBlock:1, Rest/bitstring>>
+	),
+	<<Block/binary, RestNew/binary>>.
+
+% Block of type picture, must be ignored, only the next block will be returned
+processMetaDataBlock(<<_:1, 6:7, Length:24, Data/binary>>) ->
+	BitLength = Length * 8,
+	<<_:BitLength, NextData/binary>> = Data,
+	{<<>>, NextData};
+% Any other kind of block, must be returned with the rest of the data
+processMetaDataBlock(<<IsLastBlock:1, Type:7, Length:24, Data/binary>>) ->
+	BitLength = Length * 8,
+	<<BlockData:BitLength, NextData/binary>> = Data,
+	<<Block/binary>> = <<IsLastBlock:1, Type:7, Length:24, BlockData:BitLength>>,
+	{<<Block/binary>>, <<NextData/binary>>}.
