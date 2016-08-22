@@ -22,7 +22,7 @@ processFile(File, ".flac") ->
 processFile(_, _) ->
 	unknownFileType.
 
-parseContent(<<0, Rest/binary>>) ->
-	<<0, Rest/binary>>;
-parseContent(<<1, Rest/binary>>) ->
-	<<1, Rest/binary>>.
+parseContent(<<IsLastBlock, Rest/binary>>) when IsLastBlock =:= 0 ->
+	<<IsLastBlock, Rest/binary>>;
+parseContent(<<IsLastBlock, Rest/binary>>) when IsLastBlock =:= 1 ->
+	<<IsLastBlock, Rest/binary>>.
