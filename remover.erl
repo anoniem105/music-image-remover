@@ -15,8 +15,9 @@ processFiles([]) ->
 
 processFile(File, ".flac") ->
 	{ok, <<SMarker:32, Data/binary>>} = file:read_file(File),
-	file:write_file("foo", <<SMarker:32>>),
-	file:write_file("foo", parseContent(Data), [append]);
+	NewName = "new-" ++ File,
+	file:write_file(NewName, <<SMarker:32>>),
+	file:write_file(NewName, parseContent(Data), [append]);
 processFile(_, _) ->
 	unknownFileType.
 
