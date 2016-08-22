@@ -16,7 +16,7 @@ processFiles([]) ->
 	dfsfinished.
 
 processFile(File, ".flac") ->
-	{ok, Data} = file:read_file(File),
-	Data;
+	{ok, <<SMarker:32, Data/binary>>} = file:read_file(File),
+	file:write_file("foo", <<SMarker:32>>);
 processFile(_, _) ->
 	unknownFileType.
