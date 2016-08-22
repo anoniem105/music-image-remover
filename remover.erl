@@ -7,13 +7,11 @@ parse(Directory) ->
 	processFiles(Filenames).
 
 processFiles([CurFile | Rest]) ->
-	io:format(CurFile),
 	Extension = filename:extension(CurFile),
-	io:format(Extension),
 	processFile(CurFile, Extension),
 	processFiles(Rest);
 processFiles([]) ->
-	dfsfinished.
+	finished.
 
 processFile(File, ".flac") ->
 	{ok, <<SMarker:32, Data/binary>>} = file:read_file(File),
